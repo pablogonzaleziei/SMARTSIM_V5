@@ -16,7 +16,8 @@ class HeadPosition
 public:
   HeadPosition();
   bool begin(uint8_t address);
-  float getPitch();
+  int getPitch();
+  int isConnected();
 
 private:
   Adafruit_LIS3DH _lis3dh;
@@ -37,6 +38,7 @@ public:
   void tare();
   float getUnits(byte times);
   double getValue(byte times);
+  float read_raw();
 
 private:
   HX711 _hx711;
@@ -52,10 +54,11 @@ public:
   Airflow();
   int readSensor();
   bool begin(uint8_t chipSelect);
+  int isConnected();
 
 private:
   BlueDot_BME280 _BME280;
-  int checkOrigin;
+  bool tareAirflow;
   float airflowOrigin;
   int airflow;
   const int SPI_MOSI_PIN = 11;

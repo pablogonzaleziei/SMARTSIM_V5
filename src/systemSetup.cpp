@@ -1,13 +1,17 @@
 #include "systemSetup.h"
 #include "Arduino.h"
 #include <BLEPeripheral.h>
-
+#include <smartairway.h>
 
 /*
  *  @brief  Select the model for the smart airway app with the jumpers
  *  @author  pgonzalez
  */
-SystemSetup::SystemSetup() {}
+SystemSetup::SystemSetup()
+{
+  pinMode(bleConnectedPin, OUTPUT);
+  pinMode(wifiForgetPin, OUTPUT);
+}
 
 int SystemSetup::models()
 {
@@ -29,11 +33,44 @@ int SystemSetup::models()
   return model;
 }
 
-void error()
+/*
+ *  @brief  Control the LED of the switch. It blinks if BLE is disconnected.
+ *  @param BLEconnected: (bool) true if a BLE device is connected
+ *  @author  pgonzalez
+ */
+void SystemSetup::bleConnected(bool BLEconnected)
 {
+
+  if (!BLEconnected)
+  {
+    digitalWrite(bleConnectedPin, HIGH);
+    delay(200);
+    digitalWrite(bleConnectedPin, LOW);
+    delay(200);
+  }
+  else
+  {
+    digitalWrite(bleConnectedPin, HIGH); // light of switch on and continuous
+  }
 }
 
-void BLEsetup()
+int SystemSetup::wifi_written(bool written)
 {
+  if (written){
+    digitalWrite(wifiForgetPin, 1);
+    return 1;
+  }else{
+    return 0;
+  }
+
   
 }
+
+// void SystemSetup::error(){
+
+// }
+
+// void BLEsetup()
+// {
+
+// }

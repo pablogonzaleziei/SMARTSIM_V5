@@ -24,12 +24,17 @@ private:
       {1, 0}, // baby
       {1, 1}  // difficult
   };
+  int bleConnectedPin = 10;
+  int wifiForgetPin = 9;
 
 public:
+
   SystemSetup();
   int models();
   void error();
   void BLEsetup();
+  void bleConnected(bool BLEconnected);
+  int wifi_written(bool written);
 };
 
 #endif

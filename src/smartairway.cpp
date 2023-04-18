@@ -5,7 +5,7 @@
 HeadPosition::HeadPosition() {}
 
 /*
- *  @brief  Initialize the LIS3DH sensor and set the range to 2G 
+ *  @brief  Initialize the LIS3DH sensor and set the range to 2G
  *  @param address: I2C address
  *  @return true if address is correct (0x18 or 0x19). false if failure
  *  @author  pgonzalez
@@ -15,13 +15,26 @@ bool HeadPosition::begin(uint8_t address)
   if (_lis3dh.begin(address))
   {
     _lis3dh.setRange(LIS3DH_RANGE_2_G);
+    Serial.print("Sensor at ");
+    Serial.print(address);
+    Serial.println(" found!");
     return true;
   }
   else
   {
-    // Serial.println("Sensor not found!");
+    Serial.print("Sensor at ");
+    Serial.print(address);
+    Serial.println(" not found!");
     return false;
   }
+}
+
+int HeadPosition::isConnected()
+{
+  if (_lis3dh.getDeviceID() == 0xFF)
+    return 0;
+  else
+    return 1;
 }
 
 /*
@@ -29,12 +42,12 @@ bool HeadPosition::begin(uint8_t address)
  *  @return value of pitch (float)
  *  @author  pgonzalez
  */
-float HeadPosition::getPitch()
+int HeadPosition::getPitch()
 {
   _lis3dh.read();
   float x = _lis3dh.x / 1000.0;
   float z = _lis3dh.z / 1000.0;
-  float pitch = atan2(x, z) * 180.0 / PI;
+  int pitch = atan2(x, z) * 180.0 / PI;
   return pitch;
 }
 
@@ -43,8 +56,8 @@ float HeadPosition::getPitch()
 StrainGauge::StrainGauge() {}
 
 /*
- *  @brief  Initialize the H7X11 
- *  @param dataPin: Serial Data Output Pin 
+ *  @brief  Initialize the H7X11
+ *  @param dataPin: Serial Data Output Pin
  *  @param clockPin: Serial Clock Input Pin
  *  @author  pgonzalez
  */
@@ -82,20 +95,26 @@ float StrainGauge::getUnits(byte times)
   return _hx711.get_units(times);
 }
 /*
- *  @brief  Current value without the tare weight; 
+ *  @brief  Current value without the tare weight;
  *  @param times: how many readings to do
  *  @return Tared value (double)
  *  @author  pgonzalez
  */
-double StrainGauge::getValue(byte times) {
-	return _hx711.read_average(times) - _hx711.get_offset();
+double StrainGauge::getValue(byte times)
+{
+  return _hx711.read_average(times) - _hx711.get_offset();
+}
+
+float StrainGauge::read_raw()
+{
+  return _hx711.read();
 }
 
 // AIRFLOW FUNCTIONS---------------------------------------------------
 
 Airflow::Airflow()
 {
-  checkOrigin = 0;
+  tareAirflow = false;
   airflowOrigin = 0;
   airflow = 0;
 }
@@ -108,12 +127,12 @@ Airflow::Airflow()
 int Airflow::readSensor()
 {
 
-  while (checkOrigin == 0)
+  while (!tareAirflow)
   {
-    delay(100);
+    delay(500);
     airflowOrigin = _BME280.readPressure() * 1000;
-    Serial.print("tare");
-    checkOrigin = 1;
+    Serial.print("Taring airflow sensor...");
+    tareAirflow = true;
   }
 
   airflow = _BME280.readPressure() * 1000 - airflowOrigin;
@@ -170,28 +189,40 @@ bool Airflow::begin(uint8_t chipSelect)
   }
 }
 
+int Airflow::isConnected()
+{
+  if (_BME280.checkID())
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
 
 // FSR FUNCTIONS---------------------------------------------------
 
-
-FSRsensor::FSRsensor(uint8_t analogPin) {
+FSRsensor::FSRsensor(uint8_t analogPin)
+{
   _analogPin = analogPin;
-  
 }
 
 /*
  *  @brief  FSR reading reseted depending on initial force
  *  @author  pgonzalez
  */
-int FSRsensor::getTaredForce(){
-  
+int FSRsensor::getTaredForce()
+{
+
   int fsrRaw = analogRead(_analogPin);
-  
+
   static int restForce = 0; // Initial force in FSR1 (Trachea insert + neck skin)
 
   // Reset rest forces on the first loop iteration
   static bool isInitialized = false;
-  if (!isInitialized) {
+  if (!isInitialized)
+  {
     restForce = fsrRaw;
     isInitialized = true;
   }
@@ -204,8 +235,9 @@ int FSRsensor::getTaredForce(){
  *  @brief  FSR raw analog reading
  *  @author  pgonzalez
  */
-int FSRsensor::getRawForce(){
-  
+int FSRsensor::getRawForce()
+{
+
   int fsrRaw = analogRead(_analogPin);
   return fsrRaw;
 }

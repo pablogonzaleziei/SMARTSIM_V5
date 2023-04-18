@@ -8,8 +8,7 @@
 #define stomach_CS 6
 #define leftLung_CS 5
 
-const int bleConnected = 10;
-// SMART AIRWAY CLASSES
+#pragma region SMART AIRWAY CLASSES
 SystemSetup settings;
 HeadPosition headSensor;
 HeadPosition chestSensor;
@@ -25,6 +24,7 @@ FSRsensor frontRight_Jaw(PIN_A4);
 FSRsensor backRight_Jaw(PIN_A5);
 FSRsensor left_Maxilla(PIN_A4);
 FSRsensor right_Maxilla(PIN_A5);
+#pragma endregion 
 
 BLEPeripheral blePeripheral;
 
@@ -80,7 +80,6 @@ void systemSetup()
   blePeripheral.addAttribute(credentialsDescriptor);
   blePeripheral.begin();
 
-  pinMode(bleConnected, OUTPUT);
 }
 
 void connectedSensors()
@@ -160,6 +159,7 @@ void jawThrust()
                        lowByte(right_Maxilla.getTaredForce()), highByte(right_Maxilla.getTaredForce())};
   jawCharacteristic.setValue((const unsigned char *)jawArray, 12);
 }
+
 void loop()
 {
   BLECentral central = blePeripheral.central();
